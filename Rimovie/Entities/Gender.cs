@@ -9,13 +9,7 @@ namespace Rimovie.Entities
 {
     public class Gender
     {
-        [Key]
-        [Column("genderId")]
         public int GenderId { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        [Column("name")]
         public string Name { get; set; }
     }
 }

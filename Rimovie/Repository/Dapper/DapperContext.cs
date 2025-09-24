@@ -1,5 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -20,6 +20,6 @@ namespace Rimovie.Repository.Dapper
         }
 
         public IDbConnection CreateConnection()
-            => new SqlConnection(_connectionString);
+         => new NpgsqlConnection(_connectionString);
     }
 }

@@ -9,20 +9,9 @@ namespace Rimovie.Entities
 {
     public class WishList
     {
-        [Key]
-        [Column("wishListId")]
         public int WishListId { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        [Column("name")]
         public string Name { get; set; }
-
-        [Required]
-        [Column("userId")]
         public int UserId { get; set; }
-
-        [ForeignKey("UserId")]
         public virtual User User { get; set; }
     }
 }

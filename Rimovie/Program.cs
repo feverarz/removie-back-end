@@ -13,7 +13,16 @@ namespace Rimovie
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText("startup-error.txt", ex.ToString());
+                throw;
+            }
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

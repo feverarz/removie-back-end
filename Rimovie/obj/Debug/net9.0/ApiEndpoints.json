@@ -1,0 +1,60 @@
+[
+  {
+    "ContainingType": "Rimovie.Controllers.FilmsController",
+    "Method": "Create",
+    "RelativePath": "api/Films/v1",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "film",
+        "Type": "Rimovie.Entities.Film",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Rimovie.Controllers.FilmsController",
+    "Method": "GetById",
+    "RelativePath": "api/Films/v1/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Rimovie.Controllers.FilmsController",
+    "Method": "GetAll",
+    "RelativePath": "api/Films/v1/all",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Rimovie.Controllers.FilmsController",
+    "Method": "CreateList",
+    "RelativePath": "api/Films/v1/insertList",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "films",
+        "Type": "System.Collections.Generic.List\u00601[[Rimovie.Entities.Film, Rimovie, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

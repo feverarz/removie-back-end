@@ -9,13 +9,7 @@ namespace Rimovie.Entities
 {
     public class Actor
     {
-        [Key]
-        [Column("actorId")]
         public int ActorId { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        [Column("name")]
         public string Name { get; set; }
     }
 }

@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Rimovie.Repository;
 using Rimovie.Repository.Dapper;
-using Rimovie.Repository.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,8 +28,13 @@ namespace Rimovie
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddSingleton<DapperContext>();
+            services.AddScoped<DapperContext>();
+            services.AddScoped<FilmRepository>();
+            services.AddScoped<DirectorRepository>();
+            services.AddScoped<UserRepository>();
+            services.AddScoped<WishListRepository>();
+            services.AddScoped<GenderRepository>();
+            services.AddScoped<ActorRepository>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
