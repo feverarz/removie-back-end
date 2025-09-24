@@ -9,11 +9,11 @@ namespace Rimovie.Repository
     public class WishListRepository(DapperContext context)
     {
         private readonly DapperContext _context = context;
-        public async Task<IEnumerable<WishList>> GetAllAsync()
+        public async Task<IEnumerable<WishList>> GetAllByUserAsync(long id)
         {
-            var query = "SELECT * FROM WishList";
+            var query = "SELECT * FROM WishList WHERE userId = @Id";
             using var connection = _context.CreateConnection();
-            return await connection.QueryAsync<WishList>(query);
+            return await connection.QueryAsync<WishList>(query, new { Id = id });
         }
         public async Task<WishList> GetByIdAsync(int id)
         {

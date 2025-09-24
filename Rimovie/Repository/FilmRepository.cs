@@ -23,6 +23,22 @@ namespace Rimovie.Repository
             using var connection = _context.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<Film>(query, new { Id = id });
         }
+        public async Task<IEnumerable<Film>> GetFilmsFromWishList(long wishListId, long userId)
+        {
+            var query = @"
+                SELECT f.*
+                FROM Wishlist wl
+                JOIN WishlistFilm wlf ON wl.wishlistId = wlf.wishlistId
+                JOIN Film f ON f.filmId = wlf.filmId
+                WHERE wl.wishlistId = @WishlistId
+                  AND wl.userId = @UserId;";
+
+            var parameters = new { WishlistId = 1, UserId = 1 };
+            using var connection = _context.CreateConnection();
+            var films = await connection.QueryAsync<Film>(query, parameters);
+            return films;
+        }
+
 
         public async Task<int> InsertAsync(Film film)
         {

@@ -48,6 +48,22 @@ namespace Rimovie.Controllers
                 return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
+
+        [HttpGet("v1/{wishListId}/{userId}")]
+        public async Task<IActionResult> GetFilmsFromWishList(long wishListId, long userId)
+        {
+            try
+            {
+                var response = await _filmRepository.GetFilmsFromWishList(wishListId, userId);
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         [HttpPost("v1")]
         public async Task<IActionResult> Create([FromBody] Film film)
         {
