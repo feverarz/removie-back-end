@@ -43,7 +43,7 @@ namespace Rimovie.Repository
         }
         public async Task<bool> DeleteAsync(int id)
         {
-            var query = "DELETE FROM Actor WHERE actorId = @Id";
+            var query = "DELETE FROM Actor WHERE actorid = @Id";
             using var connection = _context.CreateConnection();
             var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
             return affectedRows > 0;
