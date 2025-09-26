@@ -33,13 +33,15 @@ namespace Rimovie
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<DapperContext>();
+
             services.AddScoped<FilmRepository>();
-            services.AddScoped<DirectorRepository>();
+            services.AddScoped<RatingRepository>();
             services.AddScoped<UserRepository>();
+            services.AddScoped<WishListFilmRepository>();
             services.AddScoped<WishListRepository>();
-            services.AddScoped<GenderRepository>();
-            services.AddScoped<ActorRepository>();
+
             services.AddScoped<IAuthService, AuthService>();
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -56,8 +58,11 @@ namespace Rimovie
                         )
                     };
                 });
+
             services.AddAuthorization();
+
             services.AddControllers();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Rimovie", Version = "v1" });

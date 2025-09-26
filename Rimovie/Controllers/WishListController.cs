@@ -1,35 +1,70 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Rimovie.Entities;
+using Rimovie.Models;
 using Rimovie.Repository;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Rimovie.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("wishlist")]
     public class WishListController : ControllerBase
     {
         private readonly WishListRepository _wishListRepository;
-        public WishListController(WishListRepository wishListRepository)
+        private readonly WishListFilmRepository _wishListFilmRepository;
+
+        public WishListController(
+            WishListRepository wishListRepository,
+            WishListFilmRepository wishListFilmRepository)
         {
             _wishListRepository = wishListRepository;
+            _wishListFilmRepository = wishListFilmRepository;
         }
 
-        [HttpGet("v1/all/{userId}")]
-        public async Task<IActionResult> GetAllWishListByUser(long userId)
+        // GET /wishlist
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetMyWishlists()
         {
-            try
-            {
-                var response = await _wishListRepository.GetAllByUserAsync(userId);
-                return Ok(response);
-            }
-            catch (System.Exception)
-            {
+            var userId = int.Parse(User.FindFirst("id").Value);
+            var wishlists = await _wishListRepository.GetWithFilmsByUserAsync(userId);
+            return Ok(wishlists);
+        }
 
-                throw;
-            }
+        // POST /wishlist/:filmId
+        [HttpPost("{filmId}")]
+        [Authorize]
+        public async Task<IActionResult> AddFilmToDefaultWishlist(int filmId)
+        {
+            var userId = int.Parse(User.FindFirst("id").Value);
+            var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
+
+            if (wishlistId is null)
+                return NotFound("No se encontró la wishlist del usuario.");
+
+            var success = await _wishListFilmRepository.AddFilmAsync(wishlistId.Value, filmId);
+            if (!success)
+                return BadRequest("No se pudo agregar la película.");
+
+            return Ok();
+        }
+
+        // DELETE /wishlist/:filmId
+        [HttpDelete("{filmId}")]
+        [Authorize]
+        public async Task<IActionResult> RemoveFilmFromDefaultWishlist(int filmId)
+        {
+            var userId = int.Parse(User.FindFirst("id").Value);
+            var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
+
+            if (wishlistId is null)
+                return NotFound("No se encontró la wishlist del usuario.");
+
+            var success = await _wishListFilmRepository.RemoveFilmAsync(wishlistId.Value, filmId);
+            if (!success)
+                return NotFound("La película no estaba en la wishlist.");
+
+            return NoContent();
         }
     }
 }

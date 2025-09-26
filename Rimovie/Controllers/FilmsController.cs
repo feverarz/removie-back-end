@@ -1,104 +1,81 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Rimovie.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Rimovie.Entities;
+using Rimovie.Models.Request;
 using Rimovie.Repository;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Rimovie.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class FilmsController : ControllerBase
+    [Route("api/[controller]")]
+    public class FilmController : ControllerBase
     {
         private readonly FilmRepository _filmRepository;
-        public FilmsController(FilmRepository repository)
+
+        public FilmController(FilmRepository filmRepository)
         {
-            _filmRepository = repository;
+            _filmRepository = filmRepository;
         }
 
-        [HttpGet("v1/all")]
+        [HttpPost]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> CreateFilm([FromBody] FilmCreateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var film = FilmMapper.ToEntity(dto);
+            var filmId = await _filmRepository.InsertAsync(film);
+            return Ok(new { FilmId = filmId });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetFilm(int id)
+        {
+            var film = await _filmRepository.GetByIdAsync(id);
+            if (film is null)
+                return NotFound();
+
+            var dto = FilmMapper.ToResponseDto(film);
+            return Ok(dto);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var response = await _filmRepository.GetAllAsync();
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error interno: {ex.Message}");
-            }
+            var films = await _filmRepository.GetAllAsync();
+            var dtos = films.Select(FilmMapper.ToResponseDto);
+            return Ok(dtos);
         }
 
-        [HttpGet("v1/{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateFilm(int id, [FromBody] FilmCreateDto dto)
         {
-            try
-            {
-                var response = await _filmRepository.GetByIdAsync(id);
-                if (response == null)
-                    return NotFound($"Film with ID {id} not found.");
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error interno: {ex.Message}");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var film = FilmMapper.ToEntity(dto);
+            film.FilmId = id;
+
+            var success = await _filmRepository.UpdateAsync(film);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
         }
 
-        [HttpGet("v1/{wishListId}/{userId}")]
-        public async Task<IActionResult> GetFilmsFromWishList(long wishListId, long userId)
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteFilm(int id)
         {
-            try
-            {
-                var response = await _filmRepository.GetFilmsFromWishList(wishListId, userId);
-                return Ok(response);
-            }
-            catch (Exception)
-            {
+            var success = await _filmRepository.DeleteAsync(id);
+            if (!success)
+                return NotFound();
 
-                throw;
-            }
-        }
-
-        [HttpPost("v1")]
-        public async Task<IActionResult> Create([FromBody] Film film)
-        {
-            try
-            {
-                if (film == null)
-                    return BadRequest("Film data is required.");
-                var newFilmId = await _filmRepository.InsertAsync(film);
-                return CreatedAtAction(nameof(GetById), new { id = newFilmId }, new { filmId = newFilmId });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error interno: {ex.Message}");
-            }
-        }
-
-        [HttpPost("v1/insertList")]
-        public async Task<IActionResult> CreateList([FromBody] List<Film> films)
-        {
-            try
-            {
-                if (films == null || !films.Any())
-                    return BadRequest("Film list is required.");
-                var createdFilmIds = new List<int>();
-                foreach (var film in films)
-                {
-                    var newFilmId = await _filmRepository.InsertAsync(film);
-                    createdFilmIds.Add(newFilmId);
-                }
-                return Ok(new { createdFilmIds });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error interno: {ex.Message}");
-            }
+            return NoContent();
         }
     }
 }

@@ -12,6 +12,5 @@ namespace Rimovie.Entities
         public int WishListId { get; set; }
         public string Name { get; set; }
         public int UserId { get; set; }
-        public virtual User User { get; set; }
     }
 }

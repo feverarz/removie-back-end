@@ -1,20 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Rimovie.Entities
+namespace Rimovie.Models.Request
 {
-    public class Film
+    public class FilmCreateDto
     {
-        public int FilmId { get; set; }
+        [Required]
+        [MaxLength(100)]
         public string Title { get; set; }
+        [Required]
+        [MaxLength(255)]
         public string Description { get; set; }
+        [Required]
         public int ReleaseYear { get; set; }
+        [Required]
         public string PosterUrl { get; set; }
+        [Required]
         public string TrailerUrl { get; set; }
+        [Required]
         public List<string> Genres { get; set; }
     }
 }

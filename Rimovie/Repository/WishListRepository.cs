@@ -1,5 +1,7 @@
 ﻿using Dapper;
 using Rimovie.Entities;
+using Rimovie.Models;
+using Rimovie.Models.Response;
 using Rimovie.Repository.Dapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,44 +11,89 @@ namespace Rimovie.Repository
     public class WishListRepository(DapperContext context)
     {
         private readonly DapperContext _context = context;
-        public async Task<IEnumerable<WishList>> GetAllByUserAsync(long id)
-        {
-            var query = "SELECT * FROM WishList WHERE userId = @Id";
-            using var connection = _context.CreateConnection();
-            return await connection.QueryAsync<WishList>(query, new { Id = id });
-        }
-        public async Task<WishList> GetByIdAsync(int id)
-        {
-            var query = "SELECT * FROM WishList WHERE wishListId = @Id";
-            using var connection = _context.CreateConnection();
-            return await connection.QuerySingleOrDefaultAsync<WishList>(query, new { Id = id });
-        }
+
         public async Task<int> InsertAsync(WishList wishList)
         {
-            var query = @"
-            INSERT INTO WishList (name, description)
-            VALUES (@Name, @Description)
-            RETURNING wishListId";
+            var query = @"INSERT INTO wishlist (name, userid)
+                          VALUES (@Name, @UserId)
+                          RETURNING wishlistid";
             using var connection = _context.CreateConnection();
             return await connection.QuerySingleAsync<int>(query, wishList);
         }
-        public async Task<bool> UpdateAsync(WishList wishList)
+
+        public async Task<IEnumerable<WishList>> GetAllByUserAsync(int userId)
+        {
+            var query = @"SELECT * FROM wishlist WHERE userid = @UserId";
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<WishList>(query, new { UserId = userId });
+        }
+
+        public async Task<int?> GetDefaultWishlistIdAsync(int userId)
+        {
+            var query = @"SELECT wishlistid FROM wishlist WHERE userid = @UserId LIMIT 1";
+            using var connection = _context.CreateConnection();
+            return await connection.QuerySingleOrDefaultAsync<int?>(query, new { UserId = userId });
+        }
+
+        public async Task<IEnumerable<WishListWithFilmsDto>> GetWithFilmsByUserAsync(int userId)
         {
             var query = @"
-            UPDATE WishList SET
-                name = @Name,
-                description = @Description
-            WHERE wishListId = @WishListId";
+                SELECT 
+                    w.wishlistid AS WishListId,
+                    w.userid AS UserId,
+                    f.filmid AS FilmId,
+                    f.title,
+                    f.description,
+                    f.releaseyear,
+                    f.posterurl,
+                    f.trailerurl
+                FROM wishlist w
+                LEFT JOIN wishlistfilm wf ON wf.wishlistid = w.wishlistid
+                LEFT JOIN film f ON f.filmid = wf.filmid
+                WHERE w.userid = @UserId
+                ORDER BY w.wishlistid";
+
             using var connection = _context.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(query, wishList);
-            return affectedRows > 0;
+            var lookup = new Dictionary<int, WishListWithFilmsDto>();
+            var result = await connection.QueryAsync(query, new { UserId = userId });
+
+            foreach (var row in result)
+            {
+                int wishListId = row.WishListId;
+
+                if (!lookup.ContainsKey(wishListId))
+                {
+                    lookup[wishListId] = new WishListWithFilmsDto
+                    {
+                        Id = wishListId,
+                        UserId = row.UserId,
+                        Films = new List<FilmResponseDto>()
+                    };
+                }
+
+                if (row.FilmId != null)
+                {
+                    lookup[wishListId].Films.Add(new FilmResponseDto
+                    {
+                        Id = row.FilmId,
+                        Title = row.title,
+                        Description = row.description,
+                        ReleaseYear = row.releaseyear,
+                        PosterUrl = row.posterurl,
+                        TrailerUrl = row.trailerurl
+                    });
+                }
+            }
+
+            return lookup.Values;
         }
-        public async Task<bool> DeleteAsync(int id)
+
+        public async Task<bool> DeleteAsync(int wishListId)
         {
-            var query = "DELETE FROM WishList WHERE wishListId = @Id";
+            var query = @"DELETE FROM wishlist WHERE wishlistid = @Id";
             using var connection = _context.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
-            return affectedRows > 0;
+            var affected = await connection.ExecuteAsync(query, new { Id = wishListId });
+            return affected > 0;
         }
     }
 }

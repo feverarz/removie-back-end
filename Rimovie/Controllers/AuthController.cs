@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Rimovie.Entities;
 using Rimovie.Models.Auth;
+using Rimovie.Repository;
 using Rimovie.Services.AuthService;
 using System;
 using System.Security.Claims;
@@ -14,10 +16,14 @@ namespace Rimovie.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _auth;
+        private readonly UserRepository _userRepository;
+        private readonly WishListRepository _wishListRepository;
 
-        public AuthController(IAuthService auth)
+        public AuthController(IAuthService auth, UserRepository userRepository, WishListRepository wishListRepository)
         {
             _auth = auth;
+            _userRepository = userRepository;
+            _wishListRepository = wishListRepository;
         }
 
         [HttpPost("login")]
@@ -36,6 +42,16 @@ namespace Rimovie.Controllers
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
         {
             var user = await _auth.RegisterAsync(dto);
+
+            var userId = await _userRepository.InsertAsync(user);
+
+            // Crear wishlist por defecto
+            var defaultWishlist = new WishList
+            {
+                Name = "Mi lista",
+                UserId = userId
+            };
+            await _wishListRepository.InsertAsync(defaultWishlist);
             var result = await _auth.LoginAsync(user);
             SetRefreshCookie(result.RefreshToken);
             result.RefreshToken = null;

@@ -42,7 +42,7 @@ namespace Rimovie.Services.AuthService
             };
         }
 
-        public async Task<User?> ValidateUserAsync(string identifier, string password)
+        public async Task<User> ValidateUserAsync(string identifier, string password)
         {
             var user = await _db.QueryFirstOrDefaultAsync<User>(
                 @"SELECT * FROM ""User"" WHERE ""email"" = @id OR ""username"" = @id", new { id = identifier });
@@ -65,10 +65,10 @@ namespace Rimovie.Services.AuthService
                     p = hash
                 });
 
-            return new User { UserId = userId, Username = dto.Username, Permission = "user" };
+            return new User { UserId = userId, Username = dto.Username, Role = "user" };
         }
 
-        public async Task<AuthResponseDto?> RefreshTokensAsync(string refreshToken)
+        public async Task<AuthResponseDto> RefreshTokensAsync(string refreshToken)
         {
             var token = await _db.QueryFirstOrDefaultAsync<RefreshToken>(
                 @"SELECT * FROM refreshtokens WHERE token = @token AND expiresat > NOW()", new { token = refreshToken });
