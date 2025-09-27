@@ -1,8 +1,10 @@
-﻿using Rimovie.Mappers;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Rimovie.Entities;
+using Rimovie.Mappers;
 using Rimovie.Models.Request;
 using Rimovie.Repository;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -76,6 +78,30 @@ namespace Rimovie.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportFilms([FromBody] List<FilmImportDto> films)
+        {
+            foreach (var dto in films)
+            {
+                // Insertar género si no existe
+                var genderId = await _filmRepository.GetOrCreateAsync(dto.Gender.Name);
+
+                var film = new Film
+                {
+                    Title = dto.Title,
+                    Description = dto.Synopsis,
+                    ReleaseYear = dto.Year,
+                    PosterUrl = dto.Poster_Url,
+                    TrailerUrl = "", // lo podés dejar vacío por ahora
+                    Genres = new List<string> { dto.Gender.Name } // si usás strings por ahora
+                };
+
+                await _filmRepository.InsertAsync(film);
+            }
+
+            return Ok(new { inserted = films.Count });
         }
     }
 }

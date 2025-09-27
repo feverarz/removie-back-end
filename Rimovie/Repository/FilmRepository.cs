@@ -2,8 +2,9 @@
 using Rimovie.Entities;
 using Rimovie.Repository.Dapper;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Rimovie.Repository
 {
@@ -56,7 +57,7 @@ namespace Rimovie.Repository
         public async Task<int> InsertAsync(Film film)
         {
             var query = @"
-                INSERT INTO ""Film"" (title, description, releaseyear, posterurl, trailerurl)
+                INSERT INTO ""film"" (title, description, releaseyear, posterurl, trailerurl)
                 VALUES (@Title, @Description, @ReleaseYear, @PosterUrl, @TrailerUrl)
                 RETURNING filmid";
 
@@ -114,7 +115,7 @@ namespace Rimovie.Repository
             return affectedRows > 0;
         }
 
-        private async Task<int> GetOrCreateGenreIdAsync(string name, System.Data.IDbConnection connection)
+        private async Task<int> GetOrCreateGenreIdAsync(string name, IDbConnection connection)
         {
             var selectQuery = "SELECT genderid FROM gender WHERE name = @Name";
             var genreId = await connection.QuerySingleOrDefaultAsync<int?>(selectQuery, new { Name = name });
@@ -124,6 +125,18 @@ namespace Rimovie.Repository
 
             var insertQuery = "INSERT INTO gender (name) VALUES (@Name) RETURNING genderid";
             return await connection.QuerySingleAsync<int>(insertQuery, new { Name = name });
+        }
+        public async Task<int> GetOrCreateAsync(string name)
+        {
+            using var connection = _context.CreateConnection();
+            var existing = await connection.QuerySingleOrDefaultAsync<Gender>(
+                @"SELECT * FROM ""gender"" WHERE name = @Name", new { Name = name });
+
+            if (existing != null)
+                return existing.GenderId;
+
+            return await connection.ExecuteScalarAsync<int>(
+                @"INSERT INTO ""gender"" (name) VALUES (@Name) RETURNING genderid", new { Name = name });
         }
     }
 }

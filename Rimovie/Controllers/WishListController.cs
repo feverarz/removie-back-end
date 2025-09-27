@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Rimovie.Models;
 using Rimovie.Repository;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Rimovie.Controllers
@@ -26,7 +27,11 @@ namespace Rimovie.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyWishlists()
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized("No se encontró el ID del usuario en el token.");
+
+            var userId = int.Parse(claim.Value);
             var wishlists = await _wishListRepository.GetWithFilmsByUserAsync(userId);
             return Ok(wishlists);
         }
@@ -36,7 +41,11 @@ namespace Rimovie.Controllers
         [Authorize]
         public async Task<IActionResult> AddFilmToDefaultWishlist(int filmId)
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized("No se encontró el ID del usuario en el token.");
+
+            var userId = int.Parse(claim.Value);
             var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
 
             if (wishlistId is null)
@@ -54,7 +63,11 @@ namespace Rimovie.Controllers
         [Authorize]
         public async Task<IActionResult> RemoveFilmFromDefaultWishlist(int filmId)
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized("No se encontró el ID del usuario en el token.");
+
+            var userId = int.Parse(claim.Value);
             var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
 
             if (wishlistId is null)

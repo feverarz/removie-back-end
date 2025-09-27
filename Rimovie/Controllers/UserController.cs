@@ -31,7 +31,10 @@ namespace Rimovie.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
+            dto.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordHash);
+
             var user = UserMapper.ToEntity(dto);
+
             var userId = await _userRepository.InsertAsync(user);
             user.UserId = userId;
 

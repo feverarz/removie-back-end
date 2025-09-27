@@ -26,13 +26,17 @@ namespace Rimovie.Services.AuthService
             var accessToken = JwtHelper.GenerateAccessToken(user, _config);
             var refreshToken = JwtHelper.GenerateRefreshToken();
 
-            await _db.ExecuteAsync(@"INSERT INTO RefreshTokens (userid, token, expiresat)
+            //Posible implementacion a futuro: RefreshTokens
+
+            await _db.ExecuteAsync(@"INSERT INTO refreshtokens (userid, token, expiresat)
                                  VALUES (@uid, @token, @exp)", new
             {
                 uid = user.UserId,
                 token = refreshToken,
                 exp = DateTime.UtcNow.AddDays(7)
             });
+
+            //await Task.CompletedTask; // evita el warning por ahora
 
             return new AuthResponseDto
             {
@@ -56,14 +60,18 @@ namespace Rimovie.Services.AuthService
         public async Task<User> RegisterAsync(RegisterDto dto)
         {
             var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            var userId = await _db.ExecuteScalarAsync<int>(
-                @"INSERT INTO ""User"" (""username"", ""email"", ""passwordhash"", ""permission"", ""createdat"")
-              VALUES (@u, @e, @p, 'user', CURRENT_TIMESTAMP) RETURNING ""userid""", new
-                {
-                    u = dto.Username,
-                    e = dto.Email,
-                    p = hash
-                });
+
+            var query = @"
+                INSERT INTO ""User"" (username, email, passwordhash, role) 
+                VALUES (@Username, @Email, @PasswordHash, @Role)
+                RETURNING userid";
+
+            var userId = await _db.ExecuteScalarAsync<int>(query,new {
+                Username = dto.Username,
+                Email = dto.Email,
+                PasswordHash = hash,
+                Role = "user"
+            });
 
             return new User { UserId = userId, Username = dto.Username, Role = "user" };
         }
@@ -87,12 +95,12 @@ namespace Rimovie.Services.AuthService
 
         public async Task LogoutAsync(string token)
         {
-            await _db.ExecuteAsync(@"DELETE FROM RefreshTokens WHERE Token = @token", new { token });
+            await _db.ExecuteAsync(@"DELETE FROM refreshtokens WHERE token = @token", new { token });
         }
 
         public async Task LogoutAllAsync(int userId)
         {
-            await _db.ExecuteAsync(@"DELETE FROM RefreshTokens WHERE UserId = @uid", new { uid = userId });
+            await _db.ExecuteAsync(@"DELETE FROM refreshtokens WHERE userid = @uid", new { uid = userId });
         }
     }
 }

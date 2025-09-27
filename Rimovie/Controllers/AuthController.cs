@@ -41,15 +41,13 @@ namespace Rimovie.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
         {
-            var user = await _auth.RegisterAsync(dto);
-
-            var userId = await _userRepository.InsertAsync(user);
+            var user= await _auth.RegisterAsync(dto);
 
             // Crear wishlist por defecto
             var defaultWishlist = new WishList
             {
                 Name = "Mi lista",
-                UserId = userId
+                UserId = user.UserId
             };
             await _wishListRepository.InsertAsync(defaultWishlist);
             var result = await _auth.LoginAsync(user);

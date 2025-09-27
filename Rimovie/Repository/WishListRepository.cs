@@ -38,47 +38,48 @@ namespace Rimovie.Repository
         public async Task<IEnumerable<WishListWithFilmsDto>> GetWithFilmsByUserAsync(int userId)
         {
             var query = @"
-                SELECT 
-                    w.wishlistid AS WishListId,
-                    w.userid AS UserId,
-                    f.filmid AS FilmId,
-                    f.title,
-                    f.description,
-                    f.releaseyear,
-                    f.posterurl,
-                    f.trailerurl
-                FROM wishlist w
-                LEFT JOIN wishlistfilm wf ON wf.wishlistid = w.wishlistid
-                LEFT JOIN film f ON f.filmid = wf.filmid
-                WHERE w.userid = @UserId
-                ORDER BY w.wishlistid";
+        SELECT 
+            w.wishlistid,
+            w.userid,
+            f.filmid,
+            f.title,
+            f.description,
+            f.releaseyear,
+            f.posterurl,
+            f.trailerurl
+        FROM wishlist w
+        LEFT JOIN wishlistfilm wf ON wf.wishlistid = w.wishlistid
+        LEFT JOIN film f ON f.filmid = wf.filmid
+        WHERE w.userid = @UserId
+        ORDER BY w.wishlistid";
 
             using var connection = _context.CreateConnection();
-            var lookup = new Dictionary<int, WishListWithFilmsDto>();
             var result = await connection.QueryAsync(query, new { UserId = userId });
+
+            var lookup = new Dictionary<int, WishListWithFilmsDto>();
 
             foreach (var row in result)
             {
-                int wishListId = row.WishListId;
+                int wishListId = (int)row.wishlistid;
 
                 if (!lookup.ContainsKey(wishListId))
                 {
                     lookup[wishListId] = new WishListWithFilmsDto
                     {
                         Id = wishListId,
-                        UserId = row.UserId,
+                        UserId = (int)row.userid,
                         Films = new List<FilmResponseDto>()
                     };
                 }
 
-                if (row.FilmId != null)
+                if (row.filmid != null)
                 {
                     lookup[wishListId].Films.Add(new FilmResponseDto
                     {
-                        Id = row.FilmId,
+                        Id = (int)row.filmid,
                         Title = row.title,
                         Description = row.description,
-                        ReleaseYear = row.releaseyear,
+                        ReleaseYear = row.releaseyear != null ? (int)row.releaseyear : 0,
                         PosterUrl = row.posterurl,
                         TrailerUrl = row.trailerurl
                     });

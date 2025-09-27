@@ -4,6 +4,7 @@ using Rimovie.Entities;
 using Rimovie.Models.Response;
 using Rimovie.Repository;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Rimovie.Controllers
@@ -27,7 +28,11 @@ namespace Rimovie.Controllers
             if (score < 1 || score > 5)
                 return BadRequest("La puntuación debe estar entre 1 y 5.");
 
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized("No se encontró el ID del usuario en el token.");
+
+            var userId = int.Parse(claim.Value);
             var success = await _ratingRepository.InsertOrUpdateAsync(userId, filmId, score);
 
             if (!success)

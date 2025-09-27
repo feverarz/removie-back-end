@@ -20,4 +20,20 @@ namespace Rimovie.Models.Request
         [Required]
         public List<string> Genres { get; set; }
     }
+
+    public class FilmImportDto
+    {
+        public string Title { get; set; }
+        public string Synopsis { get; set; }
+        public int Year { get; set; }
+        public string Poster_Url { get; set; }
+        public GenderDto Gender { get; set; }
+    }
+    public class GenderDto
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+
+
 }
