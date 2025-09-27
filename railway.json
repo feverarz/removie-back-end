@@ -1,0 +1,4 @@
+﻿{
+    "build": "dotnet publish ./rimovie/Rimovie.csproj -c Release -o out",
+    "start": "dotnet out/Rimovie.dll"
+}
