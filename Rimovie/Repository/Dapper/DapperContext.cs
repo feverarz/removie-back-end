@@ -1,25 +1,43 @@
-﻿using Microsoft.Extensions.Configuration;
-using Npgsql;
+﻿using Npgsql;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Rimovie.Repository.Dapper
 {
     public class DapperContext
     {
-        private readonly IConfiguration _configuration;
         private readonly string _connectionString;
 
-        public DapperContext(IConfiguration configuration)
+        public DapperContext()
         {
-            _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("DefaultConnection");
+            var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+            if (string.IsNullOrWhiteSpace(rawUrl))
+            {
+                Console.WriteLine("❌ DATABASE_URL no está definida o está vacía.");
+                _connectionString = ""; // Evita romper el constructor
+                return;
+            }
+
+            try
+            {
+                var builder = new NpgsqlConnectionStringBuilder(rawUrl);
+                _connectionString = builder.ConnectionString;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("❌ Error al construir la cadena de conexión:");
+                Console.WriteLine(ex.Message);
+                _connectionString = ""; // Evita romper el constructor
+            }
         }
 
         public IDbConnection CreateConnection()
-         => new NpgsqlConnection(_connectionString);
+        {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Cadena de conexión no válida.");
+
+            return new NpgsqlConnection(_connectionString);
+        }
     }
 }

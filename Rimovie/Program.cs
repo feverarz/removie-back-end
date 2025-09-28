@@ -4,9 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Rimovie.Middlewares;
 using Rimovie.Repository;
 using Rimovie.Repository.Dapper;
 using Rimovie.Services.AuthService;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+
+
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
@@ -55,11 +59,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Rimovie v1"));
 }
+// 🔹 Middleware de excepciones personalizado
+app.UseMiddleware<ExceptionMiddleware>();
+
 
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+Console.WriteLine("DATABASE_URL:");
+Console.WriteLine(Environment.GetEnvironmentVariable("DATABASE_URL") ?? "NO DEFINIDA");
+
+Console.WriteLine("Jwt__Issuer:");
+Console.WriteLine(builder.Configuration["Jwt:Issuer"] ?? "NO DEFINIDA");
 
 app.Run();
