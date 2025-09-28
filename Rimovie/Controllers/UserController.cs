@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Rimovie.Excepciones;
 using Rimovie.Mappers;
 using Rimovie.Models.Request;
 using Rimovie.Repository;
@@ -22,7 +23,7 @@ namespace Rimovie.Controllers
         {
             var user = await _userRepository.GetByEmailAsync(email);
             if (user is null)
-                return NotFound("Usuario no encontrado.");
+                throw new NotFoundException("Usuario no encontrado.");
 
             var dto = UserMapper.ToResponseDto(user);
             return Ok(dto);

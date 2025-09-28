@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rimovie.Entities;
+using Rimovie.Excepciones;
 using Rimovie.Mappers;
 using Rimovie.Models.Request;
 using Rimovie.Repository;
@@ -25,8 +26,9 @@ namespace Rimovie.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateFilm([FromBody] FilmCreateDto dto)
         {
+
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                throw new BadRequestException("El modelo enviado no es válido");
 
             var film = FilmMapper.ToEntity(dto);
             var filmId = await _filmRepository.InsertAsync(film);
@@ -38,7 +40,7 @@ namespace Rimovie.Controllers
         {
             var film = await _filmRepository.GetByIdAsync(id);
             if (film is null)
-                return NotFound();
+                throw new NotFoundException($"No se encontró la película con ID {id}");
 
             var dto = FilmMapper.ToResponseDto(film);
             return Ok(dto);
@@ -56,52 +58,52 @@ namespace Rimovie.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateFilm(int id, [FromBody] FilmCreateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                    throw new BadRequestException("El modelo enviado no es válido");
 
-            var film = FilmMapper.ToEntity(dto);
-            film.FilmId = id;
+                var film = FilmMapper.ToEntity(dto);
+                film.FilmId = id;
 
-            var success = await _filmRepository.UpdateAsync(film);
-            if (!success)
-                return NotFound();
+                var success = await _filmRepository.UpdateAsync(film);
+                if (!success)
+                    throw new NotFoundException($"No se encontró la película con ID {id} para actualizar");
 
-            return NoContent();
+                return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteFilm(int id)
         {
-            var success = await _filmRepository.DeleteAsync(id);
-            if (!success)
-                return NotFound();
+                var success = await _filmRepository.DeleteAsync(id);
+                if (!success)
+                    throw new NotFoundException($"No se encontró la película con ID {id} para eliminar");
 
-            return NoContent();
+                return NoContent();
         }
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportFilms([FromBody] List<FilmImportDto> films)
         {
-            foreach (var dto in films)
-            {
-                // Insertar género si no existe
-                var genderId = await _filmRepository.GetOrCreateAsync(dto.Gender.Name);
-
-                var film = new Film
+                foreach (var dto in films)
                 {
-                    Title = dto.Title,
-                    Description = dto.Synopsis,
-                    ReleaseYear = dto.Year,
-                    PosterUrl = dto.Poster_Url,
-                    TrailerUrl = "", // lo podés dejar vacío por ahora
-                    Genres = new List<string> { dto.Gender.Name } // si usás strings por ahora
-                };
+                    // Insertar género si no existe
+                    var genderId = await _filmRepository.GetOrCreateAsync(dto.Gender.Name);
 
-                await _filmRepository.InsertAsync(film);
-            }
+                    var film = new Film
+                    {
+                        Title = dto.Title,
+                        Description = dto.Synopsis,
+                        ReleaseYear = dto.Year,
+                        PosterUrl = dto.Poster_Url,
+                        TrailerUrl = "", // lo podés dejar vacío por ahora
+                        Genres = new List<string> { dto.Gender.Name } // si usás strings por ahora
+                    };
 
-            return Ok(new { inserted = films.Count });
+                    await _filmRepository.InsertAsync(film);
+                }
+
+                return Ok(new { inserted = films.Count });
         }
     }
 }

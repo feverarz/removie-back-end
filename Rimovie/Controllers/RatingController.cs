@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Rimovie.Entities;
+using Rimovie.Excepciones;
 using Rimovie.Models.Response;
 using Rimovie.Repository;
 using System;
@@ -26,17 +28,17 @@ namespace Rimovie.Controllers
         public async Task<IActionResult> RateFilm(int filmId, [FromBody] int score)
         {
             if (score < 1 || score > 5)
-                return BadRequest("La puntuación debe estar entre 1 y 5.");
+                throw new BadRequestException("La puntuación debe estar entre 1 y 5.");
 
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
-                return Unauthorized("No se encontró el ID del usuario en el token.");
+                throw new UnauthorizedException("No se encontró el ID del usuario en el token.");
 
             var userId = int.Parse(claim.Value);
             var success = await _ratingRepository.InsertOrUpdateAsync(userId, filmId, score);
 
             if (!success)
-                return BadRequest("No se pudo registrar la puntuación.");
+                throw new BadRequestException("No se pudo registrar la puntuación.");
 
             return Ok();
         }

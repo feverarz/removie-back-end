@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Rimovie.Entities;
+using Rimovie.Excepciones;
 using Rimovie.Models.Auth;
 using Rimovie.Repository;
 using Rimovie.Services.AuthService;
@@ -30,7 +31,7 @@ namespace Rimovie.Controllers
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
         {
             var user = await _auth.ValidateUserAsync(dto.Identifier, dto.Password);
-            if (user == null) return Unauthorized();
+            if (user == null) throw new UnauthorizedException("Credenciales inválidas");
 
             var result = await _auth.LoginAsync(user);
             SetRefreshCookie(result.RefreshToken);
@@ -63,7 +64,7 @@ namespace Rimovie.Controllers
             if (string.IsNullOrEmpty(refreshToken)) return Unauthorized();
 
             var result = await _auth.RefreshTokensAsync(refreshToken);
-            if (result == null) return Unauthorized();
+            if (result == null) throw new UnauthorizedException("Credenciales inválidas");
 
             SetRefreshCookie(result.RefreshToken);
             result.RefreshToken = null;

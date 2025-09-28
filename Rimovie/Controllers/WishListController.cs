@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Rimovie.Excepciones;
 using Rimovie.Models;
 using Rimovie.Repository;
 using System.Security.Claims;
@@ -43,17 +45,17 @@ namespace Rimovie.Controllers
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
-                return Unauthorized("No se encontró el ID del usuario en el token.");
+                throw new UnauthorizedException("No se encontró el ID del usuario en el token.");
 
             var userId = int.Parse(claim.Value);
             var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
 
             if (wishlistId is null)
-                return NotFound("No se encontró la wishlist del usuario.");
+                throw new NotFoundException("No se encontró la wishlist del usuario.");
 
             var success = await _wishListFilmRepository.AddFilmAsync(wishlistId.Value, filmId);
             if (!success)
-                return BadRequest("No se pudo agregar la película.");
+                throw new BadRequestException("No se pudo agregar la película.");
 
             return Ok();
         }
@@ -65,17 +67,17 @@ namespace Rimovie.Controllers
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
-                return Unauthorized("No se encontró el ID del usuario en el token.");
+                throw new UnauthorizedException("No se encontró el ID del usuario en el token.");
 
             var userId = int.Parse(claim.Value);
             var wishlistId = await _wishListRepository.GetDefaultWishlistIdAsync(userId);
 
             if (wishlistId is null)
-                return NotFound("No se encontró la wishlist del usuario.");
+                throw new NotFoundException("No se encontró la wishlist del usuario.");
 
             var success = await _wishListFilmRepository.RemoveFilmAsync(wishlistId.Value, filmId);
             if (!success)
-                return NotFound("La película no estaba en la wishlist.");
+                throw new NotFoundException("La película no estaba en la wishlist.");
 
             return NoContent();
         }
