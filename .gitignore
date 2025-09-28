@@ -25,3 +25,6 @@ obj/
 
 # Archivos de configuración local
 applicationhost.config
+
+# Ignorar carpeta de salida
+out/
