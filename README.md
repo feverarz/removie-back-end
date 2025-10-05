@@ -1,16 +1,15 @@
 ## 🎬 Removie Back-End
 
-**Removie** is a secure and scalable .NET Web API that powers a movie-based application with user authentication, token refresh logic, and clean RESTful endpoints. Built with performance and maintainability in mind, this backend serves as the foundation for a fullstack movie experience.
+**Removie** is a lightweight and secure .NET Web API that powers a movie-based application with user authentication, refresh token logic, and clean RESTful endpoints. Built with **Dapper** for high-performance data access and manual control over SQL, this backend is designed for clarity, speed, and future scalability.
 
 ---
 
 ### 🚀 Technologies Used
 
 - **.NET 8 Web API**
-- **Entity Framework Core**
+- **Dapper (Micro ORM)**
 - **PostgreSQL**
 - **JWT Authentication**
-- **In-Memory & Response Caching**
 - **Cookie-based Refresh Token Flow**
 - **Railway Deployment**
 
@@ -31,10 +30,10 @@
   Admin-only endpoints for managing content.
 
 - ⚡ **Performance-Oriented**  
-  Includes caching strategies and async operations for optimized response times.
+  Uses Dapper for fast, efficient SQL queries and manual control over database logic.
 
-- 📄 **Clean Architecture**  
-  Separation of concerns with DTOs, services, repositories, and middleware.
+- 🧱 **Manual Schema Setup**  
+  No automatic migrations—database schema must be created manually (future tooling planned).
 
 ---
 
@@ -73,11 +72,10 @@ Update `appsettings.json` or use environment variables:
 }
 ```
 
-3. **Run migrations**
+3. **Create the database schema manually**
 
-```bash
-dotnet ef database update
-```
+> ⚠️ This project does not use EF migrations. You must create tables manually.  
+> A future version may include SQL scripts or tooling to help users set up the database automatically.
 
 4. **Start the API**
 
@@ -115,8 +113,7 @@ dotnet run
 
 ### 🌐 Deployment
 
-⚠️ This project is currently in active development. Core features are functional, but the codebase, documentation, and database tooling are still evolving. Contributions, feedback, and testing are welcome as the platform continues to grow.
-
+⚠️ This project is currently in active development. Core features are functional, but the codebase, documentation, and database tooling are still evolving. Contributions, feedback, and testing are welcome as the platform continues to grow.s.
 
 ---
 
@@ -126,4 +123,3 @@ dotnet run
 Backend Developer | .NET Specialist | Fullstack Integrator  
 GitHub: [@feverarz](https://github.com/feverarz)
 
----
